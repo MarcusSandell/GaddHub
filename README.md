@@ -1,2 +1,2 @@
-# G-ddHub
+# GäddHub
 BARA FÖR MEDLEMMAR I GUILDEN GÄDDA 🐟
