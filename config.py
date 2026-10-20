@@ -1,6 +1,7 @@
 from pathlib import Path
 import platform
 import json
+import logging
 from dataclasses import dataclass, asdict
 import os
 
@@ -9,6 +10,8 @@ SYSTEM = platform.system()
 FOREVER_DIR = "_forever_"
 SERVER_ADDRESS = "https://wow.klungo.dev"
 DATA_FILE_NAME = "gädda.lua"
+
+logger = logging.getLogger(__name__)
 
 def is_wow_install(path: Path) -> bool:
     return path.is_dir() and (
@@ -82,32 +85,33 @@ class Config:
 
     @classmethod
     def load(cls):
-        """Loads from config file.
-        
-        If the config file does not exist, create and try to populate.
-        """
+        """Load the config, creating it and detecting the WoW path if needed."""
         path = get_config_path()
+        logger.info("Loading configuration from %s", path)
         if not path.is_file():
             cls.create_default_config(path)
         data = json.loads(path.read_text())
 
-        wow_path = data.get("wow_path")
-        if not wow_path:
-            detected = find_wow_install_path()
-            if detected is None:
+        configured_path = data.get("wow_path")
+        if configured_path:
+            wow_path = Path(configured_path)
+        else:
+            wow_path = find_wow_install_path()
+            if wow_path is None:
                 raise FileNotFoundError(
-                    f"Unable to find WoW installation. "
+                    "Unable to find WoW installation. "
                     f"Set wow_path in {path}"
                 )
-            detected.write_text(json.dumps(data, indent=2))
-
-        wow_path = Path(wow_path)
+            data["wow_path"] = str(wow_path)
+            path.write_text(json.dumps(data, indent=2))
 
         if not is_wow_install(wow_path):
             raise ValueError(f"Invalid WoW path: {wow_path}")
 
         data["wow_path"] = wow_path
-        return cls(**data)
+        config = cls(**data)
+        logger.info("Configuration loaded successfully")
+        return config
 
     @classmethod
     def create_default_config(cls, path: Path):
@@ -115,6 +119,7 @@ class Config:
 
         config = cls()
         path.write_text(json.dumps(asdict(config),indent=2))
+        logger.info("Created default configuration at %s", path)
 
     @property
     def data_files(self) -> list[Path]:
