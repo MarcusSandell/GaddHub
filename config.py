@@ -1,15 +1,10 @@
 from pathlib import Path
-import platform
 import json
 import logging
 from dataclasses import dataclass, asdict
 import os
 
-SYSTEM = platform.system()
-
-FOREVER_DIR = "_forever_"
-SERVER_ADDRESS = "https://wow.klungo.dev"
-DATA_FILE_NAME = "gädda.lua"
+from globals import SYSTEM, FOREVER_DIR, SERVER_ADDRESS, DATA_FILE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +76,6 @@ class Config:
     server_address: str = SERVER_ADDRESS
     server_key: str | None = None
 
-    _data_files = None
-
     @classmethod
     def load(cls):
         """Load the config, creating it and detecting the WoW path if needed."""
@@ -122,11 +115,16 @@ class Config:
         logger.info("Created default configuration at %s", path)
 
     @property
+    def account_dir(self) -> Path:
+        if self.wow_path is None:
+            raise ValueError("WoW path not configured")
+
+        return self.wow_path / "WTF" / "Account"
+
+    @property
     def data_files(self) -> list[Path]:
-        if not self._data_files:
-            self._data_files = list(
-                self.wow_path / "WTF" / "Account".glob(
-                    f"*./SavedVariables/{DATA_FILE_NAME}"
-                )
+        return list(
+            self.account_dir.glob(
+                f"*/SavedVariables/{DATA_FILE_NAME}"
             )
-        return self._data_files
+        )
