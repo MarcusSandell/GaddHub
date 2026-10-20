@@ -8,6 +8,7 @@ SYSTEM = platform.system()
 
 FOREVER_DIR = "_forever_"
 SERVER_ADDRESS = "https://wow.klungo.dev"
+DATA_FILE_NAME = "gädda.lua"
 
 def is_wow_install(path: Path) -> bool:
     return path.is_dir() and (
@@ -37,10 +38,12 @@ def find_wow_install_path() -> Path | None:
         ]
 
         for steam_root in steam_roots:
-            candidates.extend(steam_root.glob(
-                "*/pfx/drive_c/Program Files (x86)"
-                f"/World of Warcraft/{FOREVER_DIR}"
-            ))
+            candidates.extend(
+                Path(p) for p in steam_root.glob(
+                    "*/pfx/drive_c/Program Files (x86)"
+                    f"/World of Warcraft/{FOREVER_DIR}"
+                )
+            )
 
     matches = sorted({
         path.resolve()
@@ -96,9 +99,12 @@ class Config:
                 )
             detected.write_text(json.dumps(data, indent=2))
 
+        wow_path = Path(wow_path)
+
         if not is_wow_install(wow_path):
             raise ValueError(f"Invalid WoW path: {wow_path}")
 
+        data["wow_path"] = wow_path
         return cls(**data)
 
     @classmethod
