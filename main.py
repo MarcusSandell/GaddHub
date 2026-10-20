@@ -20,6 +20,7 @@ if __name__ == "__main__":
     logger.info("Application starting")
     try:
         config = Config.load()
+        logger.info(config)
     except Exception:
         logger.exception("Failed to load configuration")
         raise
