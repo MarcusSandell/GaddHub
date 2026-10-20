@@ -78,6 +78,8 @@ class Config:
     server_address: str = SERVER_ADDRESS
     server_key: str | None = None
 
+    _data_files = None
+
     @classmethod
     def load(cls):
         """Loads from config file.
@@ -113,3 +115,13 @@ class Config:
 
         config = cls()
         path.write_text(json.dumps(asdict(config),indent=2))
+
+    @property
+    def data_files(self) -> list[Path]:
+        if not self._data_files:
+            self._data_files = list(
+                self.wow_path / "WTF" / "Account".glob(
+                    f"*./SavedVariables/{DATA_FILE_NAME}"
+                )
+            )
+        return self._data_files
