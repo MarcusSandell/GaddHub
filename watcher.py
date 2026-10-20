@@ -2,14 +2,18 @@
 import hashlib
 import logging
 import time
+import json
 
 from pathlib import Path
 from queue import Queue, Empty
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from luadata import lua_to_dict
+import requests
 
 from globals import DATA_FILE_NAME, DEBOUNCE_SECONDS
+from config import get_config_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +48,20 @@ def process_file(path: Path, data: bytes):
     data = path.read_bytes()
     logging.info("Read %s (%d bytes)", path, len(data))
 
-    # TODO: Parse Lua
-    # TODO: Convert to JSON
-    # TODO: Upload to server
+    parsed = lua_to_dict(
+        data.decode("utf-8"),
+        array_mode="index-only"
+    )
+
+    logging.info(parsed)
+
+    # response = requests.post(
+    #     "https://wow.klungo.dev/api/snapshots",
+    #     json=parsed,
+    #     timeout=10
+    # )
+
+    # response.raise_for_status()
 
 
 def watch(wow_path):

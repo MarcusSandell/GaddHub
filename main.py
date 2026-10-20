@@ -2,6 +2,7 @@
 import logging
 
 from config import Config, get_config_path
+from watcher import watch
 
 def setup_logging() -> None:
     log_path = get_config_path().with_name("gaddhub.log")
@@ -24,3 +25,5 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Failed to load configuration")
         raise
+
+    watch(config.wow_path)
