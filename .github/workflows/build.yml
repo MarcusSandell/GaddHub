@@ -12,9 +12,11 @@ jobs:
         include:
           - os: windows-latest
             artifact: Gadda-Windows
+            upload_path: dist/Gadda.exe
 
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             artifact: Gadda-Linux
+            upload_path: Gadda-Linux-x86_64.tar.gz
 
     runs-on: ${{ matrix.os }}
 
@@ -36,9 +38,15 @@ jobs:
         run: |
           python -m PyInstaller --onefile --clean --name Gadda main.py
 
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        run: |
+          tar -czf Gadda-Linux-x86_64.tar.gz -C dist Gadda
+
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: Gadda-*
+          path: ${{ matrix.upload_path }}
+          compression-level: 0
           if-no-files-found: error
